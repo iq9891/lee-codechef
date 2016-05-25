@@ -1,6 +1,7 @@
 init();
 
 function init() {
+  var bCanSub = true;
   gDom('#t').onkeyup = oTKeyUp;
   gDom('#k').onkeyup = oKKeyUp;
   gDom('#btn').onclick = btnClick;
@@ -11,6 +12,10 @@ function btnClick() {
       oA = gDom('#a'),
       oData = [],
       oAnswer=[];
+
+  if (!bCanSub) {
+    return;
+  }
 
   oA.innerHTML = '';
 
@@ -47,6 +52,7 @@ function oTKeyUp() {
       oK = gDom('#k');
 
   oK.value = '';
+  gDom('#a').innerHTML = '';
 
   if (!sTval) {
     showHide(oK,'none');
@@ -73,6 +79,8 @@ function oTKeyUp() {
 
 function oKKeyUp() {
   var sKval = this.value;
+
+  gDom('#a').innerHTML = '';
 
   if (!sKval) {
     if (gDom('input',gDom('#n')).length) {
@@ -109,10 +117,20 @@ function oKKeyUp() {
 }
 
 function dataChildBlur(self) {
-  var sDval = self.value;
+  var sDval = self.value,
+      aDval = sDval.replace(/\]|\[/g,'').split(',');
+
   if (!isArray(sDval)) {
+    bCanSub = false;
     return tipError('必须是一维数组形式，如"[1,3]"');
   }
+
+  if (aDval[0]>=aDval[1]) {
+    bCanSub = false;
+    return tipError('数组第1位必须小于第2位');
+  }
+
+  bCanSub = true;
   tipError('');
 }
 
@@ -184,10 +202,9 @@ function getCount(arr,x) {
   arr.forEach(function(key,i){
     if (arr[i+1]&&isCross(key,arr[i+1])) {
       x--;
-
     }
   });
-  if (arr.length>2&&isCross(arr[0],arr[arr.length-1])) {
+  if (arr.length>2&&isCross(arr[0],arr[arr.length-1])&&x>2) {
     x--;
   }
   return x;
@@ -195,6 +212,7 @@ function getCount(arr,x) {
 
 //初始需要的数组个数是N(王国数组的个数),数组之间重叠一次，即减少一次。
 function isCross(arr1,arr2) {
+  console.log(arr1,arr2);
   if (arr1[0]-0>arr2[arr2.length-1]-0||arr1[arr1.length-1]-0<arr2[0]-0) {
   //如果两个数组不相邻即没有交集
     return false;
